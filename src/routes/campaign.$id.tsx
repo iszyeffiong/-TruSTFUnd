@@ -1,9 +1,9 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useState } from "react";
-import { useWriteContract, useAccount } from "wagmi";
-import { parseUnits } from "viem";
+import { useAccount } from "wagmi";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { toast } from "sonner";
-import { CUSD_ADDRESS, ERC20_ABI } from "@/lib/wagmi";
+import { CUSD_ADDRESS } from "@/lib/wagmi";
 import {
   ShieldCheck,
   Users,
@@ -75,12 +75,12 @@ function CampaignPageContent({ campaign: c }: { campaign: Campaign }) {
     { user: "Anonymous", amount: "$25", message: "Good luck with your exams!", date: "4 days ago" },
   ];
 
-  const { writeContractAsync } = useWriteContract();
-  const { isConnected } = useAccount();
+  const { isConnected, address } = useAccount();
+  const { openConnectModal } = useConnectModal();
 
   const handleFund = async () => {
     if (!isConnected) {
-      toast.error("Please connect your MiniPay wallet first");
+      openConnectModal?.();
       return;
     }
 
@@ -89,24 +89,12 @@ function CampaignPageContent({ campaign: c }: { campaign: Campaign }) {
       return;
     }
 
-    try {
-      toast.loading("Preparing transaction...", { id: "fund-tx" });
-      const amountInUnits = parseUnits(amount, 18);
-      const PLATFORM_ESCROW = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8";
-
-      await writeContractAsync({
-        address: CUSD_ADDRESS,
-        abi: ERC20_ABI,
-        functionName: "transfer",
-        args: [PLATFORM_ESCROW, amountInUnits],
-      });
-
-      toast.success(`Successfully funded ${amount} cUSD!`, { id: "fund-tx" });
+    // Demo mode: show wallet is connected, simulate success
+    toast.loading("Preparing transaction...", { id: "fund-tx" });
+    setTimeout(() => {
+      toast.success(`Demo: ${amount} cUSD funding approved! (Wallet: ${address?.slice(0, 6)}…${address?.slice(-4)})`, { id: "fund-tx" });
       setAmount("");
-    } catch (err: any) {
-      console.error("Funding error:", err);
-      toast.error(err.shortMessage || "Transaction failed. Please try again.", { id: "fund-tx" });
-    }
+    }, 1500);
   };
 
   const shareUrl = typeof window !== "undefined" ? window.location.href : "";
@@ -115,10 +103,10 @@ function CampaignPageContent({ campaign: c }: { campaign: Campaign }) {
     <>
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-border">
-        <div className="h-56 w-full md:h-72" style={{ background: c.cover }} />
+        <div className="h-44 w-full sm:h-56 md:h-72" style={{ background: c.cover }} />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
-        <div className="relative -mt-24 md:-mt-32">
-          <div className="mx-auto max-w-7xl px-5">
+        <div className="relative -mt-20 sm:-mt-24 md:-mt-32">
+          <div className="mx-auto max-w-7xl px-4 sm:px-5">
             <Link to="/explore" className="inline-flex items-center gap-1 text-xs text-text-secondary hover:text-foreground">
               <ArrowLeft className="h-3.5 w-3.5" /> Back to Explore
             </Link>
@@ -133,7 +121,7 @@ function CampaignPageContent({ campaign: c }: { campaign: Campaign }) {
               )}
               <Badge variant="neutral">{c.category}</Badge>
             </div>
-            <h1 className="mt-4 text-balance text-4xl font-extrabold tracking-tight md:text-5xl">{c.title}</h1>
+            <h1 className="mt-4 text-balance text-2xl font-extrabold tracking-tight sm:text-3xl md:text-4xl lg:text-5xl">{c.title}</h1>
             <div className="mt-4 flex items-center gap-2 text-sm text-text-secondary">
               <span className="rounded-md bg-secondary px-2 py-1 font-mono text-xs">{c.creator}</span>
               <span>·</span>
@@ -144,12 +132,12 @@ function CampaignPageContent({ campaign: c }: { campaign: Campaign }) {
       </section>
 
       {/* Funding progress */}
-      <section className="mx-auto max-w-7xl px-5 py-10">
+      <section className="mx-auto max-w-7xl px-4 sm:px-5 py-6 sm:py-10">
         <div className="grid gap-6 lg:grid-cols-3">
-          <div className="order-2 lg:order-1 lg:col-span-2">
-            <div className="rounded-2xl border border-border bg-card p-6 md:p-8 card-glow">
+          <div className="order-2 lg:order-1 lg:col-span-2 min-w-0">
+            <div className="rounded-2xl border border-border bg-card p-4 sm:p-6 md:p-8 card-glow">
               <ProgressBar value={c.raised} goal={c.goal} />
-              <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+              <div className="mt-4 sm:mt-6 grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4">
                 <Stat label="Total Raised" value={`$${c.raised.toLocaleString()}`} />
                 <Stat label="Donors" value={`${c.donors}`} icon={<Users className="h-3.5 w-3.5" />} />
                 <Stat label="Days Left" value={`${c.daysLeft}`} icon={<Clock className="h-3.5 w-3.5" />} />
@@ -157,8 +145,8 @@ function CampaignPageContent({ campaign: c }: { campaign: Campaign }) {
               </div>
 
               {/* Tabs Area - Nested here to eliminate the void on desktop */}
-              <div className="mt-10">
-                <div className="flex border-b border-border overflow-x-auto no-scrollbar">
+              <div className="mt-6 sm:mt-10">
+                <div className="flex border-b border-border overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
                   {([
                     { id: "story", label: "Story", icon: Info },
                     { id: "updates", label: "Updates", count: updates.length, icon: Calendar },
@@ -176,7 +164,7 @@ function CampaignPageContent({ campaign: c }: { campaign: Campaign }) {
                     >
                       <t.icon className="h-4 w-4" />
                       {t.label}
-                      {t.count !== undefined && (
+                      {"count" in t && t.count !== undefined && (
                         <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px]">{t.count}</span>
                       )}
                     </button>
@@ -261,20 +249,75 @@ function CampaignPageContent({ campaign: c }: { campaign: Campaign }) {
               </div>
             </div>
 
-            {/* Milestone Tracker - Moved here to cover black space on desktop */}
-            <div className="mt-8 rounded-2xl border border-border bg-card p-6 md:p-8 card-glow">
+            {/* Mobile only: Organizer, Verified By, Recent Donors — shown above Transparency */}
+            <div className="mt-6 space-y-4 lg:hidden">
+              <div className="rounded-2xl border border-border bg-card p-4 sm:p-6">
+                <h3 className="text-sm font-extrabold uppercase tracking-wider text-text-secondary">Organizer</h3>
+                <div className="mt-4 flex items-center gap-4">
+                  <div className="h-14 w-14 rounded-full bg-gradient-to-br from-primary to-startup p-0.5">
+                    <div className="h-full w-full rounded-full bg-card grid place-items-center">
+                      <User className="h-6 w-6 text-primary" />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="font-bold">{c.creator}</div>
+                    <div className="text-xs text-text-muted inline-flex items-center gap-1">
+                      <ShieldCheck className="h-3 w-3 text-success" /> Verified Identity
+                    </div>
+                  </div>
+                </div>
+                <p className="mt-4 text-xs text-text-secondary leading-relaxed">
+                  Registered TruSTFUnd user since March 2024. Successfully completed 2 previous campaigns.
+                </p>
+                <button className="mt-6 w-full rounded-xl border border-border py-2 text-xs font-bold hover:bg-secondary">
+                  Contact Organizer
+                </button>
+              </div>
+
+              <div className="rounded-2xl border border-border bg-card p-4 sm:p-6">
+                <h3 className="text-sm font-extrabold uppercase tracking-wider text-text-secondary">Verified By</h3>
+                <ul className="mt-4 space-y-3">
+                  {["0x91…fA02", "0x44…cE19", "0x7B…71dD"].map((w) => (
+                    <li key={w} className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2">
+                        <div className="h-7 w-7 rounded-full bg-gradient-to-br from-primary to-startup" />
+                        <span className="font-mono text-xs">{w}</span>
+                      </div>
+                      <ShieldCheck className="h-4 w-4 text-success" />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="rounded-2xl border border-border bg-card p-4 sm:p-6">
+                <h3 className="text-sm font-extrabold uppercase tracking-wider text-text-secondary">Recent Donors</h3>
+                <ul className="mt-4 max-h-72 space-y-3 overflow-y-auto pr-1">
+                  {Array.from({ length: 8 }).map((_, i) => (
+                    <li key={i} className="flex items-center justify-between text-sm">
+                      <span className="font-mono text-xs text-text-secondary">0x{7342 + i}…{9182 - i}</span>
+                      <span className="font-bold text-primary">${120 - i * 10}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            {/* Proof of Use Tracker */}
+            <div className="mt-6 sm:mt-8 rounded-2xl border border-border bg-card p-4 sm:p-6 md:p-8 card-glow">
               <div className="mb-6 flex items-end justify-between">
                 <div>
-                  <div className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Proof of Use</div>
-                  <h2 className="mt-1 text-2xl font-extrabold md:text-3xl">Milestone Tracker</h2>
+                  <div className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Transparency</div>
+                  <h2 className="mt-1 text-2xl font-extrabold md:text-3xl">
+                    {c.type === "startup" ? "Milestone Tracker" : "Proof of Use"}
+                  </h2>
                 </div>
               </div>
               <div className="relative space-y-4">
                 {c.milestones.map((m, i) => {
                   const s = statusMap[m.status];
                   return (
-                    <div key={m.id} className="relative rounded-2xl border border-border bg-background/50 p-6">
-                      <div className="flex items-start gap-4">
+                    <div key={m.id} className="relative rounded-xl sm:rounded-2xl border border-border bg-background/50 p-4 sm:p-6">
+                      <div className="flex items-start gap-3 sm:gap-4">
                         <div className={`grid h-10 w-10 flex-shrink-0 place-items-center rounded-xl border ${s.color}`}>
                           <s.Icon className={`h-5 w-5 ${m.status === "active" ? "animate-spin" : ""}`} />
                         </div>
@@ -296,10 +339,15 @@ function CampaignPageContent({ campaign: c }: { campaign: Campaign }) {
                           </div>
                           {m.status === "active" && (
                             <div className="mt-4 flex flex-wrap gap-2">
-                              <button className="inline-flex items-center gap-2 rounded-lg border border-border bg-secondary px-3 py-2 text-xs font-semibold hover:border-primary/40">
-                                <Upload className="h-3.5 w-3.5" /> Upload Evidence
-                              </button>
-                              <button className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-bold text-primary-foreground hover:brightness-110">
+                              <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-secondary px-3 py-2 text-xs font-semibold transition hover:border-primary/40 hover:bg-secondary/80">
+                                <Upload className="h-3.5 w-3.5" />
+                                <span>Upload Evidence</span>
+                                <input type="file" className="hidden" onChange={() => toast.success("File uploaded successfully!")} />
+                              </label>
+                              <button 
+                                onClick={() => toast.success("Validation request sent!")}
+                                className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-bold text-primary-foreground transition hover:brightness-110"
+                              >
                                 Request Validation
                               </button>
                             </div>
@@ -314,12 +362,12 @@ function CampaignPageContent({ campaign: c }: { campaign: Campaign }) {
                     </div>
                   );
                 })}
+                </div>
               </div>
             </div>
-          </div>
 
-          <aside className="order-1 lg:order-2 space-y-6">
-              <div className="rounded-2xl border border-primary/30 bg-card p-6 card-glow">
+            <aside className="order-1 lg:order-2 space-y-4 sm:space-y-6 min-w-0">
+              <div className="rounded-2xl border border-primary/30 bg-card p-4 sm:p-6 card-glow">
             <div className="mt-3">
               <label className="text-[10px] uppercase tracking-widest text-text-muted font-bold ml-1">Amount to Fund</label>
               <div className="mt-1 flex items-center gap-2 rounded-xl border-2 border-border bg-background px-4 py-3 focus-within:border-primary/50 transition">
@@ -370,21 +418,41 @@ function CampaignPageContent({ campaign: c }: { campaign: Campaign }) {
             <div className="mt-8 border-t border-border pt-6">
               <div className="text-xs font-bold uppercase tracking-wider text-text-muted">Share this campaign</div>
               <div className="mt-4 flex gap-3">
-                <button className="grid h-10 w-10 place-items-center rounded-xl bg-[#25D366] text-white transition hover:scale-110">
+                <a 
+                  href={`https://wa.me/?text=${encodeURIComponent(`${c.title}\n\nSupport this campaign on TruSTFUnd:\n${shareUrl}`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="grid h-10 w-10 place-items-center rounded-xl bg-[#25D366] text-white transition hover:scale-110"
+                >
                   <svg viewBox="0 0 24 24" className="h-6 w-6 fill-current" xmlns="http://www.w3.org/2000/svg">
                     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
                   </svg>
-                </button>
-                <button className="grid h-10 w-10 place-items-center rounded-xl bg-[#1877F2] text-white transition hover:scale-110">
+                </a>
+                <a 
+                  href={`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(`${c.title}\n\nHelp fund this campaign on TruSTFUnd!`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="grid h-10 w-10 place-items-center rounded-xl bg-[#0088cc] text-white transition hover:scale-110"
+                >
                   <Send className="h-5 w-5" />
-                </button>
-                <button className="grid h-10 w-10 place-items-center rounded-xl bg-[#000000] text-white transition hover:scale-110">
-                  <Share2 className="h-5 w-5" />
-                </button>
+                </a>
                 <button 
                   onClick={() => {
-                    navigator.clipboard.writeText(shareUrl);
-                    toast.success("Link copied!");
+                    const text = `${c.title}\n\nSupport this campaign on TruSTFUnd:\n${shareUrl}`;
+                    if (navigator.clipboard && window.isSecureContext) {
+                      navigator.clipboard.writeText(text).then(() => toast.success("Message & Link copied!"));
+                    } else {
+                      // Fallback for non-HTTPS
+                      const textarea = document.createElement("textarea");
+                      textarea.value = text;
+                      textarea.style.position = "fixed";
+                      textarea.style.opacity = "0";
+                      document.body.appendChild(textarea);
+                      textarea.select();
+                      document.execCommand("copy");
+                      document.body.removeChild(textarea);
+                      toast.success("Message & Link copied!");
+                    }
                   }}
                   className="grid h-10 w-10 place-items-center rounded-xl bg-secondary text-foreground transition hover:scale-110"
                 >
@@ -394,7 +462,7 @@ function CampaignPageContent({ campaign: c }: { campaign: Campaign }) {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-border bg-card p-6">
+          <div className="hidden lg:block rounded-2xl border border-border bg-card p-4 sm:p-6">
               <h3 className="text-sm font-extrabold uppercase tracking-wider text-text-secondary">Organizer</h3>
               <div className="mt-4 flex items-center gap-4">
                 <div className="h-14 w-14 rounded-full bg-gradient-to-br from-primary to-startup p-0.5">
@@ -417,7 +485,7 @@ function CampaignPageContent({ campaign: c }: { campaign: Campaign }) {
               </button>
             </div>
 
-            <div className="rounded-2xl border border-border bg-card p-6">
+            <div className="hidden lg:block rounded-2xl border border-border bg-card p-4 sm:p-6">
               <h3 className="text-sm font-extrabold uppercase tracking-wider text-text-secondary">Verified By</h3>
               <ul className="mt-4 space-y-3">
                 {["0x91…fA02", "0x44…cE19", "0x7B…71dD"].map((w) => (
@@ -432,7 +500,7 @@ function CampaignPageContent({ campaign: c }: { campaign: Campaign }) {
               </ul>
             </div>
 
-            <div className="rounded-2xl border border-border bg-card p-6">
+            <div className="hidden lg:block rounded-2xl border border-border bg-card p-4 sm:p-6">
               <h3 className="text-sm font-extrabold uppercase tracking-wider text-text-secondary">Recent Donors</h3>
               <ul className="mt-4 max-h-72 space-y-3 overflow-y-auto pr-1">
                 {Array.from({ length: 8 }).map((_, i) => (

@@ -224,6 +224,19 @@ const reliefMilestones = (goal: number): Milestone[] => [
   },
 ];
 
+// Crowdfund: exactly 1 milestone = full goal amount
+const crowdfundMilestone = (goal: number, title: string, description: string, recipient: string): Milestone[] => [
+  {
+    id: "m1",
+    title,
+    description,
+    recipient,
+    amount: goal,
+    status: "active",
+    approvals: 0,
+  },
+];
+
 export const campaigns: Campaign[] = [
   {
     id: "amaka-medical-school",
@@ -242,7 +255,7 @@ export const campaigns: Campaign[] = [
     goal: 6300,
     donors: 184,
     daysLeft: 12,
-    milestones: educationMilestones(6300),
+    milestones: crowdfundMilestone(6300, "Full Academic Fees Payment", "Direct payment of all tuition, clinical, and board exam fees to the university bursary.", "University Bursary"),
     createdAt: "2025-03-14",
   },
   {
@@ -280,7 +293,7 @@ export const campaigns: Campaign[] = [
     goal: 12000,
     donors: 312,
     daysLeft: 5,
-    milestones: medicalMilestones(12000),
+    milestones: crowdfundMilestone(12000, "Full Cardiac Surgery & Recovery", "Direct payment of all surgical, ICU, and post-operative recovery costs to the hospital.", "Lagos University Hospital"),
     createdAt: "2025-04-01",
   },
   {
@@ -318,7 +331,7 @@ export const campaigns: Campaign[] = [
     goal: 4500,
     donors: 96,
     daysLeft: 18,
-    milestones: communityMilestones(4500),
+    milestones: crowdfundMilestone(4500, "Borehole Drilling & Installation", "Full procurement and installation of the borehole, solar pump, and storage tanks.", "Engineering Contractor"),
     createdAt: "2025-04-10",
   },
   {
@@ -356,7 +369,7 @@ export const campaigns: Campaign[] = [
     goal: 3500,
     donors: 45,
     daysLeft: 14,
-    milestones: communityMilestones(3500),
+    milestones: crowdfundMilestone(3500, "Solar System Procurement & Installation", "Full procurement and installation of solar panels, batteries, and clinic wiring.", "Solar Installation Co."),
     createdAt: "2025-04-12",
   },
   {
@@ -374,7 +387,7 @@ export const campaigns: Campaign[] = [
     goal: 15000,
     donors: 230,
     daysLeft: 7,
-    milestones: reliefMilestones(15000),
+    milestones: crowdfundMilestone(15000, "Merchant Restocking — All 10 Stalls", "Bulk inventory procurement paid directly to verified wholesalers for all affected merchants.", "Verified Wholesalers"),
     createdAt: "2025-04-18",
   },
   {
@@ -392,7 +405,7 @@ export const campaigns: Campaign[] = [
     goal: 25000,
     donors: 112,
     daysLeft: 25,
-    milestones: communityMilestones(25000),
+    milestones: crowdfundMilestone(25000, "Accessible Van Purchase & Conversion", "Full purchase and wheelchair conversion of the Hope Academy inclusive transport van.", "Vehicle Dealership & Conversion Workshop"),
     createdAt: "2025-04-05",
   },
   {
@@ -410,7 +423,7 @@ export const campaigns: Campaign[] = [
     goal: 3000,
     donors: 67,
     daysLeft: 10,
-    milestones: educationMilestones(3000),
+    milestones: crowdfundMilestone(3000, "Full Book Procurement & Shelving", "Purchase of all STEM, modern literature, and vocational titles paid directly to publishers.", "Authorised Book Distributors"),
     createdAt: "2025-04-15",
   },
   {
@@ -428,7 +441,7 @@ export const campaigns: Campaign[] = [
     goal: 8000,
     donors: 89,
     daysLeft: 20,
-    milestones: communityMilestones(8000),
+    milestones: crowdfundMilestone(8000, "Roof Repairs & Safety Upgrades", "Full roof replacement, safety railings, and emergency lighting for Saint Jude's Care Home.", "Construction & Safety Contractor"),
     createdAt: "2025-04-02",
   },
   {
@@ -446,7 +459,7 @@ export const campaigns: Campaign[] = [
     goal: 2000,
     donors: 34,
     daysLeft: 15,
-    milestones: reliefMilestones(2000),
+    milestones: crowdfundMilestone(2000, "Full Kit — Boots, Balls & Jerseys", "Procurement of all football boots, match balls, and home/away kits from vetted sports vendors.", "Local Sports Vendors"),
     createdAt: "2025-04-20",
   },
   {
@@ -464,7 +477,7 @@ export const campaigns: Campaign[] = [
     goal: 1200,
     donors: 28,
     daysLeft: 3,
-    milestones: reliefMilestones(1200),
+    milestones: crowdfundMilestone(1200, "Professional Tool Kit Purchase", "Full purchase of power tools, hand tools, and safety gear from the verified tool depot.", "Tool Depot"),
     createdAt: "2025-04-22",
   },
   // New Startups

@@ -24,10 +24,17 @@ const tabs = ["Milestone Reviews", "New Campaigns", "Flagged"] as const;
 type Decision = "approved" | "rejected" | "escalated";
 type DecisionMap = Record<string, Decision | "loading" | undefined>;
 
-const AUTHORIZED_VALIDATORS = (import.meta.env.VITE_AUTHORIZED_VALIDATORS || "")
+const ADMIN_VALIDATORS = (import.meta.env.VITE_ADMIN_VALIDATORS || "")
   .split(",")
-  .map((v: string) => v.trim())
+  .map((v: string) => v.trim().toLowerCase())
   .filter(Boolean);
+
+const USER_VALIDATORS = (import.meta.env.VITE_USER_VALIDATORS || "")
+  .split(",")
+  .map((v: string) => v.trim().toLowerCase())
+  .filter(Boolean);
+
+const ALL_AUTHORIZED = [...ADMIN_VALIDATORS, ...USER_VALIDATORS];
 
 function Validator() {
   return (
@@ -40,16 +47,30 @@ function Validator() {
 function ValidatorContent() {
   const [tab, setTab] = useState<(typeof tabs)[number]>("Milestone Reviews");
   const [decisions, setDecisions] = useState<DecisionMap>({});
-  const [verifiedMap, setVerifiedMap] = useState<Record<string, boolean>>(
-    Object.fromEntries(campaigns.map((c) => [c.id, c.verified])),
+  
+  // Track signatures per campaign: { [id]: { admins: string[], users: string[] } }
+  const [signaturesMap, setSignaturesMap] = useState<Record<string, { admins: string[], users: string[] }>>(
+    Object.fromEntries(campaigns.map((c) => [
+      c.id, 
+      { 
+        admins: c.verified ? ADMIN_VALIDATORS.slice(0, 2) : [], 
+        users: c.verified ? USER_VALIDATORS.slice(0, 1) : [] 
+      }
+    ])),
   );
+
   const toast = useToast();
   const { address, isConnected } = useAccount();
 
-  const isAuthorized = useMemo(() => {
-    if (!address) return false;
-    return AUTHORIZED_VALIDATORS.some(v => v.toLowerCase() === address.toLowerCase());
+  const userRole = useMemo(() => {
+    if (!address) return null;
+    const addr = address.toLowerCase();
+    if (ADMIN_VALIDATORS.includes(addr)) return "admin";
+    if (USER_VALIDATORS.includes(addr)) return "user";
+    return null;
   }, [address]);
+
+  const isAuthorized = !!userRole;
 
   // Build a flat list of every milestone awaiting validator action
   const reviewItems = useMemo(
@@ -90,11 +111,34 @@ function ValidatorContent() {
   }
 
   const toggleVerification = (campaignId: string, title: string) => {
-    setVerifiedMap(prev => {
-      const newVal = !prev[campaignId];
-      toast(`${title} is now ${newVal ? "Verified" : "Unverified"}`, "info");
-      return { ...prev, [campaignId]: newVal };
+    if (!address || !userRole) return;
+    const addr = address.toLowerCase();
+
+    setSignaturesMap(prev => {
+      const current = prev[campaignId] || { admins: [], users: [] };
+      const roleKey = userRole === "admin" ? "admins" : "users";
+      const alreadySigned = current[roleKey].includes(addr);
+      
+      const newList = alreadySigned 
+        ? current[roleKey].filter(a => a !== addr)
+        : [...current[roleKey], addr];
+      
+      const nextMap = { ...prev, [campaignId]: { ...current, [roleKey]: newList } };
+      
+      // Calculate if now verified
+      const isNowVerified = nextMap[campaignId].admins.length >= 2 && nextMap[campaignId].users.length >= 1;
+      toast(
+        alreadySigned ? `Removed your signature from ${title}` : `Signed verification for ${title}`,
+        isNowVerified ? "success" : "info"
+      );
+      
+      return nextMap;
     });
+  };
+
+  const checkIsVerified = (id: string) => {
+    const s = signaturesMap[id];
+    return s && s.admins.length >= 2 && s.users.length >= 1;
   };
 
   if (isConnected && !isAuthorized) {
@@ -161,12 +205,14 @@ function ValidatorContent() {
                         <Badge variant={campaign.type === "crowdfund" ? "crowdfund" : "startup"}>
                           {campaign.type === "crowdfund" ? "Crowdfund" : "Startup"}
                         </Badge>
-                        {verifiedMap[campaign.id] ? (
+                        {checkIsVerified(campaign.id) ? (
                           <Badge variant="verified">
                             <ShieldCheck className="h-3 w-3" /> Verified
                           </Badge>
                         ) : (
-                          <Badge variant="neutral">Unverified</Badge>
+                          <Badge variant="neutral">
+                            Unverified ({signaturesMap[campaign.id]?.admins.length}/2 Admins, {signaturesMap[campaign.id]?.users.length}/1 Users)
+                          </Badge>
                         )}
                         <Badge variant="warning">Awaiting release</Badge>
                         <span className="font-mono text-xs text-text-muted">{campaign.creator}</span>
@@ -179,7 +225,9 @@ function ValidatorContent() {
                         {campaign.title}
                       </Link>
                       <div className="mt-3 rounded-xl border border-border bg-background/50 p-4">
-                        <div className="text-xs uppercase tracking-wider text-text-muted">Milestone request</div>
+                        <div className="text-xs uppercase tracking-wider text-text-muted">
+                          {campaign.type === "crowdfund" ? "Proof of Use Request" : "Milestone request"}
+                        </div>
                         <div className="mt-1 text-lg font-bold">{milestone.title}</div>
                         <p className="mt-1 text-sm text-text-secondary">{milestone.description}</p>
                         <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs">
@@ -247,14 +295,19 @@ function ValidatorContent() {
                           <button
                             onClick={() => toggleVerification(campaign.id, campaign.title)}
                             className={`mt-2 inline-flex items-center justify-center gap-1.5 rounded-lg border px-4 py-2.5 text-xs font-bold transition ${
-                              verifiedMap[campaign.id]
-                                ? "border-border bg-secondary text-text-secondary hover:text-foreground"
+                              signaturesMap[campaign.id]?.[userRole === "admin" ? "admins" : "users"].includes(address?.toLowerCase() || "")
+                                ? "border-success/30 bg-success/10 text-success hover:bg-success/20"
                                 : "border-primary/30 bg-primary/10 text-primary hover:bg-primary/20"
                             }`}
                           >
                             <ShieldCheck className="h-3.5 w-3.5" />
-                            {verifiedMap[campaign.id] ? "Unverify Campaign" : "Verify Campaign"}
+                            {signaturesMap[campaign.id]?.[userRole === "admin" ? "admins" : "users"].includes(address?.toLowerCase() || "")
+                              ? "Revoke My Signature"
+                              : "Sign Verification"}
                           </button>
+                          <div className="mt-2 text-[10px] text-center text-text-muted">
+                            Threshold: 2 Admins, 1 User required.
+                          </div>
                         </>
                       )}
                     </div>
