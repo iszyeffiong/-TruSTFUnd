@@ -127,6 +127,13 @@ function ValidatorContent() {
                         <Badge variant={campaign.type === "crowdfund" ? "crowdfund" : "startup"}>
                           {campaign.type === "crowdfund" ? "Crowdfund" : "Startup"}
                         </Badge>
+                        {campaign.verified ? (
+                          <Badge variant="verified">
+                            <ShieldCheck className="h-3 w-3" /> Verified
+                          </Badge>
+                        ) : (
+                          <Badge variant="neutral">Unverified</Badge>
+                        )}
                         <Badge variant="warning">Awaiting release</Badge>
                         <span className="font-mono text-xs text-text-muted">{campaign.creator}</span>
                       </div>
