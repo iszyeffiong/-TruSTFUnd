@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Check, X, AlertTriangle, FileText, ShieldCheck, Loader2 } from "lucide-react";
+import { Check, X, AlertTriangle, FileText, ShieldCheck, Loader2, ArrowLeft } from "lucide-react";
 import { useAccount } from "wagmi";
 import { SiteShell } from "@/components/trustfund/SiteShell";
 import { Badge } from "@/components/trustfund/Badge";
@@ -24,6 +24,13 @@ const tabs = ["Milestone Reviews", "New Campaigns", "Flagged"] as const;
 type Decision = "approved" | "rejected" | "escalated";
 type DecisionMap = Record<string, Decision | "loading" | undefined>;
 
+const AUTHORIZED_VALIDATORS = [
+  "0x70997970C51812dc3A010C7d01b50e0d17dc79C8", // Admin 1
+  "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC", // Admin 2
+  "0x90F79bf6EB2c4f870365E785982E1f101E93b906", // User 1
+  "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65", // User 2
+];
+
 function Validator() {
   return (
     <SiteShell>
@@ -35,8 +42,16 @@ function Validator() {
 function ValidatorContent() {
   const [tab, setTab] = useState<(typeof tabs)[number]>("Milestone Reviews");
   const [decisions, setDecisions] = useState<DecisionMap>({});
+  const [verifiedMap, setVerifiedMap] = useState<Record<string, boolean>>(
+    Object.fromEntries(campaigns.map((c) => [c.id, c.verified])),
+  );
   const toast = useToast();
-  const { isConnected } = useAccount();
+  const { address, isConnected } = useAccount();
+
+  const isAuthorized = useMemo(() => {
+    if (!address) return false;
+    return AUTHORIZED_VALIDATORS.some(v => v.toLowerCase() === address.toLowerCase());
+  }, [address]);
 
   // Build a flat list of every milestone awaiting validator action
   const reviewItems = useMemo(
@@ -74,6 +89,27 @@ function ValidatorContent() {
       escalated: `Escalated ${label} to multi-sig committee`,
     };
     toast(map[decision], decision === "approved" ? "success" : decision === "rejected" ? "error" : "info");
+  }
+
+  const toggleVerification = (campaignId: string, title: string) => {
+    setVerifiedMap(prev => {
+      const newVal = !prev[campaignId];
+      toast(`${title} is now ${newVal ? "Verified" : "Unverified"}`, "info");
+      return { ...prev, [campaignId]: newVal };
+    });
+  };
+
+  if (isConnected && !isAuthorized) {
+    return (
+      <div className="mx-auto max-w-7xl px-5 py-20 text-center">
+        <AlertTriangle className="mx-auto h-12 w-12 text-warning" />
+        <h2 className="mt-4 text-2xl font-bold">Access Denied</h2>
+        <p className="mt-2 text-text-secondary">Your wallet address is not authorized to access the Validator Portal.</p>
+        <Link to="/" className="mt-6 inline-flex items-center gap-2 text-primary hover:underline">
+          <ArrowLeft className="h-4 w-4" /> Back to Home
+        </Link>
+      </div>
+    );
   }
 
   return (
@@ -127,7 +163,7 @@ function ValidatorContent() {
                         <Badge variant={campaign.type === "crowdfund" ? "crowdfund" : "startup"}>
                           {campaign.type === "crowdfund" ? "Crowdfund" : "Startup"}
                         </Badge>
-                        {campaign.verified ? (
+                        {verifiedMap[campaign.id] ? (
                           <Badge variant="verified">
                             <ShieldCheck className="h-3 w-3" /> Verified
                           </Badge>
@@ -209,6 +245,17 @@ function ValidatorContent() {
                             className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-warning/30 bg-warning/15 px-4 py-2.5 text-xs font-bold text-warning hover:bg-warning/25 disabled:opacity-50"
                           >
                             <AlertTriangle className="h-3.5 w-3.5" /> Escalate
+                          </button>
+                          <button
+                            onClick={() => toggleVerification(campaign.id, campaign.title)}
+                            className={`mt-2 inline-flex items-center justify-center gap-1.5 rounded-lg border px-4 py-2.5 text-xs font-bold transition ${
+                              verifiedMap[campaign.id]
+                                ? "border-border bg-secondary text-text-secondary hover:text-foreground"
+                                : "border-primary/30 bg-primary/10 text-primary hover:bg-primary/20"
+                            }`}
+                          >
+                            <ShieldCheck className="h-3.5 w-3.5" />
+                            {verifiedMap[campaign.id] ? "Unverify Campaign" : "Verify Campaign"}
                           </button>
                         </>
                       )}
