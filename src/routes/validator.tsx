@@ -234,16 +234,11 @@ function ValidatorContent() {
 }
 
 function Stat({ label, value, tone }: { label: string; value: string; tone: "warning" | "success" | "danger" | "primary" }) {
-  const map = {
-    warning: "text-warning",
-    success: "text-success",
-    danger: "text-danger",
-    primary: "text-primary",
-  };
+  const colorClass = tone === "warning" ? "text-warning" : tone === "success" ? "text-success" : tone === "danger" ? "text-danger" : "text-primary";
   return (
     <div className="rounded-2xl border border-border bg-card p-5">
       <div className="text-xs text-text-secondary">{label}</div>
-      <div className={`mt-1 text-2xl font-extrabold ${map[tone]}`}>{value}</div>
+      <div className={"mt-1 text-2xl font-extrabold " + colorClass}>{value}</div>
     </div>
   );
 }

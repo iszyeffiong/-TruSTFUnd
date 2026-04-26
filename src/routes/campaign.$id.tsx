@@ -146,7 +146,7 @@ function CampaignPageContent({ campaign: c }: { campaign: Campaign }) {
       {/* Funding progress */}
       <section className="mx-auto max-w-7xl px-5 py-10">
         <div className="grid gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2">
+          <div className="order-2 lg:order-1 lg:col-span-2">
             <div className="rounded-2xl border border-border bg-card p-6 md:p-8 card-glow">
               <ProgressBar value={c.raised} goal={c.goal} />
               <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -260,9 +260,65 @@ function CampaignPageContent({ campaign: c }: { campaign: Campaign }) {
                 </div>
               </div>
             </div>
+
+            {/* Milestone Tracker - Moved here to cover black space on desktop */}
+            <div className="mt-8 rounded-2xl border border-border bg-card p-6 md:p-8 card-glow">
+              <div className="mb-6 flex items-end justify-between">
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Proof of Use</div>
+                  <h2 className="mt-1 text-2xl font-extrabold md:text-3xl">Milestone Tracker</h2>
+                </div>
+              </div>
+              <div className="relative space-y-4">
+                {c.milestones.map((m, i) => {
+                  const s = statusMap[m.status];
+                  return (
+                    <div key={m.id} className="relative rounded-2xl border border-border bg-background/50 p-6">
+                      <div className="flex items-start gap-4">
+                        <div className={`grid h-10 w-10 flex-shrink-0 place-items-center rounded-xl border ${s.color}`}>
+                          <s.Icon className={`h-5 w-5 ${m.status === "active" ? "animate-spin" : ""}`} />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-xs font-bold text-text-muted">M{i + 1}</span>
+                            <h3 className="text-base font-bold">{m.title}</h3>
+                            <Badge
+                              variant={m.status === "completed" ? "verified" : m.status === "active" ? "warning" : "neutral"}
+                            >
+                              {s.label}
+                            </Badge>
+                          </div>
+                          <p className="mt-2 text-sm text-text-secondary">{m.description}</p>
+                          <div className="mt-3 grid gap-2 text-xs sm:grid-cols-3">
+                            <Field label="Recipient" value={m.recipient} />
+                            <Field label="Amount" value={`$${m.amount.toLocaleString()} cUSD`} highlight />
+                            <Field label="Approvals" value={`${m.approvals} of 4 validators`} />
+                          </div>
+                          {m.status === "active" && (
+                            <div className="mt-4 flex flex-wrap gap-2">
+                              <button className="inline-flex items-center gap-2 rounded-lg border border-border bg-secondary px-3 py-2 text-xs font-semibold hover:border-primary/40">
+                                <Upload className="h-3.5 w-3.5" /> Upload Evidence
+                              </button>
+                              <button className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-bold text-primary-foreground hover:brightness-110">
+                                Request Validation
+                              </button>
+                            </div>
+                          )}
+                          {m.status === "completed" && (
+                            <button className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">
+                              View proof onchain <ExternalLink className="h-3 w-3" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
 
-          <aside className="space-y-6">
+          <aside className="order-1 lg:order-2 space-y-6">
               <div className="rounded-2xl border border-primary/30 bg-card p-6 card-glow">
             <div className="mt-3">
               <label className="text-[10px] uppercase tracking-widest text-text-muted font-bold ml-1">Amount to Fund</label>
@@ -388,62 +444,6 @@ function CampaignPageContent({ campaign: c }: { campaign: Campaign }) {
               </ul>
             </div>
           </aside>
-        </div>
-      </section>
-
-      {/* Milestone Tracker */}
-      <section className="mx-auto max-w-7xl px-5 py-10">
-        <div className="mb-6 flex items-end justify-between">
-          <div>
-            <div className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Proof of Use</div>
-            <h2 className="mt-1 text-2xl font-extrabold md:text-3xl">Milestone Tracker</h2>
-          </div>
-        </div>
-        <div className="relative space-y-4">
-          {c.milestones.map((m, i) => {
-            const s = statusMap[m.status];
-            return (
-              <div key={m.id} className="relative rounded-2xl border border-border bg-card p-6">
-                <div className="flex items-start gap-4">
-                  <div className={`grid h-10 w-10 flex-shrink-0 place-items-center rounded-xl border ${s.color}`}>
-                    <s.Icon className={`h-5 w-5 ${m.status === "active" ? "animate-spin" : ""}`} />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-xs font-bold text-text-muted">M{i + 1}</span>
-                      <h3 className="text-base font-bold">{m.title}</h3>
-                      <Badge
-                        variant={m.status === "completed" ? "verified" : m.status === "active" ? "warning" : "neutral"}
-                      >
-                        {s.label}
-                      </Badge>
-                    </div>
-                    <p className="mt-2 text-sm text-text-secondary">{m.description}</p>
-                    <div className="mt-3 grid gap-2 text-xs sm:grid-cols-3">
-                      <Field label="Recipient" value={m.recipient} />
-                      <Field label="Amount" value={`$${m.amount.toLocaleString()} cUSD`} highlight />
-                      <Field label="Approvals" value={`${m.approvals} of 4 validators`} />
-                    </div>
-                    {m.status === "active" && (
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        <button className="inline-flex items-center gap-2 rounded-lg border border-border bg-secondary px-3 py-2 text-xs font-semibold hover:border-primary/40">
-                          <Upload className="h-3.5 w-3.5" /> Upload Evidence
-                        </button>
-                        <button className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-bold text-primary-foreground hover:brightness-110">
-                          Request Validation
-                        </button>
-                      </div>
-                    )}
-                    {m.status === "completed" && (
-                      <button className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">
-                        View proof onchain <ExternalLink className="h-3 w-3" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
         </div>
       </section>
     </>
