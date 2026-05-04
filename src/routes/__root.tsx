@@ -4,6 +4,8 @@ import {
   createRootRoute,
   ScrollRestoration,
 } from "@tanstack/react-router";
+import { Web3Provider } from "@/components/trustfund/Web3Provider";
+import { ToastHost } from "@/components/trustfund/ToastHost";
 
 function NotFoundComponent() {
   return (
@@ -34,9 +36,10 @@ export const Route = createRootRoute({
 
 function RootComponent() {
   return (
-    <>
+    <Web3Provider>
       <ScrollRestoration />
       <Outlet />
-    </>
+      <ToastHost />
+    </Web3Provider>
   );
 }

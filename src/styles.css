@@ -61,6 +61,7 @@
 }
 
 :root {
+  color-scheme: dark;
   --radius: 0.875rem;
   /* Pure black background, near-black cards */
   --background: oklch(0 0 0);
@@ -105,6 +106,49 @@
   --sidebar-ring: oklch(0.965 0.205 110);
 }
 
+.light {
+  color-scheme: light;
+  /* Swapped: Yellow Background, Black Foreground */
+  --background: oklch(0.965 0.205 110);
+  --foreground: oklch(0 0 0);
+  --surface: oklch(0.94 0.18 110);
+  --card: oklch(0.94 0.18 110);
+  --card-foreground: oklch(0 0 0);
+  --popover: oklch(0.94 0.18 110);
+  --popover-foreground: oklch(0 0 0);
+
+  /* Swapped: Black Primary, Yellow Primary-Foreground */
+  --primary: oklch(0 0 0);
+  --primary-foreground: oklch(0.965 0.205 110);
+
+  --secondary: oklch(0.88 0.15 110);
+  --secondary-foreground: oklch(0 0 0);
+  --muted: oklch(0.85 0.12 110);
+  --muted-foreground: oklch(0.3 0 0);
+  --accent: oklch(0 0 0);
+  --accent-foreground: oklch(0.965 0.205 110);
+
+  --border: oklch(0 0 0 / 0.15);
+  --input: oklch(0 0 0 / 0.15);
+  --ring: oklch(0 0 0);
+
+  /* Leave functional colors (success/danger/etc) as they are, 
+     they pop well against yellow too */
+
+  --text-secondary: oklch(0.2 0 0);
+  --text-muted: oklch(0.4 0 0);
+
+  --sidebar: oklch(0.92 0.18 110);
+  --sidebar-foreground: oklch(0 0 0);
+  --sidebar-primary: oklch(0 0 0);
+  --sidebar-primary-foreground: oklch(0.965 0.205 110);
+  --sidebar-accent: oklch(0.85 0.15 110);
+  --sidebar-accent-foreground: oklch(0 0 0);
+  --sidebar-border: oklch(0 0 0 / 0.1);
+  --sidebar-ring: oklch(0 0 0);
+}
+
+
 @layer base {
   * {
     border-color: var(--color-border);
@@ -118,15 +162,15 @@
   }
 
   html {
-    color-scheme: dark;
+    /* Handled by theme classes */
   }
 }
 
 @layer utilities {
   .glass {
     backdrop-filter: blur(12px);
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: color-mix(in srgb, var(--color-foreground), transparent 96%);
+    border: 1px solid color-mix(in srgb, var(--color-foreground), transparent 92%);
   }
   .glow-yellow {
     box-shadow: 0 0 32px rgba(252, 255, 82, 0.25);
@@ -139,8 +183,8 @@
   }
   .grid-bg {
     background-image:
-      linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+      linear-gradient(color-mix(in srgb, var(--color-foreground), transparent 94%) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, var(--color-foreground), transparent 94%) 1px, transparent 1px);
     background-size: 48px 48px;
   }
   .radial-fade {

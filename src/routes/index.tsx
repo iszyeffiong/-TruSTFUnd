@@ -144,7 +144,7 @@ function Landing() {
             </Link>
           </motion.div>
 
-          {/* Floating stats */}
+          {/* Floating stats — Hidden for now
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
@@ -164,6 +164,7 @@ function Landing() {
               </div>
             ))}
           </motion.div>
+          */}
         </div>
       </section>
 
@@ -294,7 +295,7 @@ function Landing() {
         </div>
       </section>
 
-      {/* Impact Section */}
+      {/* Impact Section — Hidden for now
       <section className="relative overflow-hidden border-t border-border bg-card py-24">
         <div className="absolute inset-0 grid-bg opacity-30" />
         <div className="relative mx-auto max-w-7xl px-5">
@@ -355,6 +356,7 @@ function Landing() {
           </div>
         </div>
       </section>
+      */}
 
       {/* FAQ Section */}
       <section className="border-t border-border bg-background py-24">

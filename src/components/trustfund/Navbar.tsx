@@ -1,8 +1,16 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Menu, X, Wallet } from "lucide-react";
+import { Menu, X, Wallet, Sun, Moon } from "lucide-react";
 import { ClientOnly } from "@tanstack/react-router";
+import { useAccount } from "wagmi";
 import { WalletButton } from "./WalletButton";
+import { useTheme } from "../../hooks/use-theme";
+
+// Get admin wallets from environment variables
+const ADMIN_WALLETS = (import.meta.env.VITE_ADMIN_VALIDATORS || "")
+  .split(",")
+  .map((v: string) => v.trim().toLowerCase())
+  .filter(Boolean);
 
 const links = [
   { to: "/explore", label: "Explore" },
@@ -14,6 +22,30 @@ const links = [
 
 export function Navbar({ hideWallet }: { hideWallet?: boolean }) {
   const [open, setOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
+  const { address } = useAccount();
+
+  const isAdmin = address && ADMIN_WALLETS.some(w => w.toLowerCase() === address.toLowerCase());
+
+  // Filter links: only show Validator if the user is an admin
+  const visibleLinks = links.filter(l => {
+    if (l.label === "Validator") return isAdmin;
+    return true;
+  });
+
+  const ThemeToggle = () => (
+    <button
+      onClick={toggleTheme}
+      className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-background text-foreground transition-colors hover:bg-secondary"
+      aria-label="Toggle theme"
+    >
+      {theme === "dark" ? (
+        <Sun className="h-5 w-5 text-primary" />
+      ) : (
+        <Moon className="h-5 w-5 text-primary" />
+      )}
+    </button>
+  );
   return (
     <header className="sticky top-0 z-50 border-b border-border/60 bg-background/70 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-7xl items-center px-5" suppressHydrationWarning>
@@ -31,7 +63,7 @@ export function Navbar({ hideWallet }: { hideWallet?: boolean }) {
 
         {/* Center Column: Menu */}
         <nav className="hidden items-center gap-1 md:flex">
-          {links.map((l) => (
+          {visibleLinks.map((l) => (
             <Link
               key={l.to}
               to={l.to}
@@ -45,6 +77,12 @@ export function Navbar({ hideWallet }: { hideWallet?: boolean }) {
 
         {/* Right Column: Wallet Button or Spacer */}
         <div className="flex flex-1 items-center justify-end">
+          <div className="mr-2 hidden md:block">
+            <ClientOnly>
+              <ThemeToggle />
+            </ClientOnly>
+          </div>
+
           {!hideWallet ? (
             <div className="hidden md:block">
               <ClientOnly
@@ -62,6 +100,12 @@ export function Navbar({ hideWallet }: { hideWallet?: boolean }) {
             <div className="hidden md:block w-[140px]" /> /* Spacer to keep center balanced */
           )}
 
+          <div className="md:hidden mr-2">
+            <ClientOnly>
+              <ThemeToggle />
+            </ClientOnly>
+          </div>
+
           <button
             className="rounded-lg border border-border p-2 md:hidden"
             onClick={() => setOpen((v) => !v)}
@@ -75,7 +119,7 @@ export function Navbar({ hideWallet }: { hideWallet?: boolean }) {
       {open && (
         <div className="border-t border-border bg-background/95 md:hidden">
           <div className="flex flex-col gap-1 px-5 py-4">
-            {links.map((l) => (
+            {visibleLinks.map((l) => (
               <Link
                 key={l.to}
                 to={l.to}

@@ -355,14 +355,14 @@ export const campaigns: Campaign[] = [
   },
   // New Crowdfunds
   {
-    id: "rural-solar",
+    id: "solargrid-africa",
     type: "crowdfund",
     category: "Infrastructure",
-    title: "Solar Power for Gboko Rural Clinic",
+    title: "SolarGrid Africa",
     description: "Equipping a community maternity ward with solar panels for 24/7 lighting and vaccine storage.",
     cover: "linear-gradient(135deg, oklch(0.6 0.15 80), oklch(0.18 0 0))",
     story:
-      "The Gboko Rural Clinic is a lifeline for over 15,000 residents in the surrounding area, yet it currently lacks reliable electricity. The maternity ward often has to deliver babies by candlelight or kerosene lamps, and the clinic frequently loses expensive vaccines due to refrigeration failures during power outages.\n\nSolar Solution Benefits:\n• 24/7 lighting for the emergency and maternity wards.\n• Reliable cold-chain storage for life-saving vaccines and medications.\n• Reduced operational costs by eliminating expensive petrol generators.\n\nBy funding this campaign, you are paying directly for the procurement and installation of a professional-grade solar power system. Funds are released in tranches to the solar installation company only after our community validators confirm each stage of the setup. The installation plan is:\n1. Procurement of high-efficiency solar panels and deep-cycle batteries.\n2. Professional installation of the rooftop array and inverter system.\n3. Wiring of the maternity ward and installation of the medical refrigerator.\n\nNo woman should have to give birth in the dark, and no child should miss a vaccine because of a power cut. Help us bring reliable, clean energy to the Gboko Clinic and save lives in the process.",
+      "SolarGrid Africa is a mission-driven project dedicated to bringing reliable power to rural clinics. The Gboko Rural Clinic is a lifeline for over 15,000 residents in the surrounding area, yet it currently lacks reliable electricity. The maternity ward often has to deliver babies by candlelight or kerosene lamps, and the clinic frequently loses expensive vaccines due to refrigeration failures during power outages.\n\nSolar Solution Benefits:\n• 24/7 lighting for the emergency and maternity wards.\n• Reliable cold-chain storage for life-saving vaccines and medications.\n• Reduced operational costs by eliminating expensive petrol generators.\n\nBy funding this campaign, you are paying directly for the procurement and installation of a professional-grade solar power system. Funds are released in tranches to the solar installation company only after our community validators confirm each stage of the setup. The installation plan is:\n1. Procurement of high-efficiency solar panels and deep-cycle batteries.\n2. Professional installation of the rooftop array and inverter system.\n3. Wiring of the maternity ward and installation of the medical refrigerator.\n\nNo woman should have to give birth in the dark, and no child should miss a vaccine because of a power cut. Help us bring reliable, clean energy to the Gboko Clinic and save lives in the process.",
     creator: "0x11Aa...99Bb",
     verified: true,
     raised: 1200,
